@@ -27,6 +27,16 @@
 
 ---
 
+### Docker 运行（挂载 config.json）
+
+```bash
+docker run -d \
+  --name openlist-115-strm-accelerator \
+  -p 3000:3000 \
+  -v $(pwd)/config.json:/app/config.json:ro \
+  ghcr.io/zhangyun199/openlist-115-strm-accelerator:latest
+```
+
 ## 快速开始
 
 ### 1) 安装依赖

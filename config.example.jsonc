@@ -1,0 +1,51 @@
+// 这是示例配置（JSONC，带注释）
+// 实际运行读取的是 config.json（标准 JSON，不支持注释）
+//
+// 建议：先复制本文件为 config.json，然后按需填写。
+{
+// 是否开启调试日志
+"debug": false,
+
+"pan115": {
+    // 115 登录 cookie（必填）
+    "cookie": "",
+
+    // 可选：用户ID（某些接口可能需要）
+    "userId": "",
+
+    // 115 API 基础地址（一般不用改）
+    "baseURL": "https://webapi.115.com",
+
+    // OpenAPI 的 accessToken / refreshToken（如果你启用自动刷新，可填写）
+    "accessToken": "",
+    "refreshToken": "",
+
+    // =============================
+    // 风控相关调参（建议从保守开始）
+    // =============================
+
+    // getFileList 同时并发请求数（建议 1）
+    "listConcurrency": 1,
+
+    // 两次 list 请求启动的最小间隔（毫秒，建议 300~600）
+    "listMinIntervalMs": 400,
+
+    // 目录列表缓存 TTL（毫秒）。更大更省请求但更不“实时”
+    "fileListTtlMs": 60000,
+
+    // 下载链接缓存 TTL（毫秒）。若链接有效期更短，请调低
+    "downloadUrlTtlMs": 60000
+},
+
+"webdav": {
+    // WebDAV 监听端口
+    "port": 3000,
+
+    // Basic Auth 用户名/密码
+    "username": "admin",
+    "password": "admin",
+    
+    // 是否拦截openlist请求下载地址 
+    "blockGoHttpClient": true
+}
+}
