@@ -1,10 +1,10 @@
 
 # 115 WebDAV Server (Node.js)
 
-把 115 网盘通过 WebDAV 暴露出来：WebDAV 客户端（Finder/Windows 映射盘/Infuse 等）访问时，服务端通过 115 网盘 API 获取目录/文件信息；下载使用 302 重定向到 115 返回的直链。
+这是一个为 **OpenList 的 STRM** 场景准备的轻量 WebDAV 服务：  
+通过 115 网盘 API 获取目录/文件信息，并在下载时返回 **302 重定向到 115 直链**，从而减少中间层读取开销，**提升 Emby 等媒体服务器的起播速度**。
 
-> 目前实现：`PROPFIND / GET / HEAD / OPTIONS`  
-> 认证方式：Basic Auth  
+> 典型用法：OpenList 生成/管理 STRM → Emby 播放 STRM → 本服务负责把“文件访问”快速转到 115 直链。
 > 支持：目录列表缓存、下载直链缓存、请求限流/并发合并（降低风控）、手动刷新目录。
 
 ---
