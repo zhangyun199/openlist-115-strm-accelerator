@@ -1,39 +1,36 @@
-/**
- * 简单的日志工具
- */
 export class Logger {
   constructor(debug = false) {
-    this.debug = debug;
+    this.debug = !!debug;
   }
 
-  /**
-   * 调试日志
-   */
-  log(...args) {
-    if (this.debug) {
-      console.log('[DEBUG]', ...args);
-    }
+  // 生成本地时间：YYYY-MM-DD HH:mm:ss.SSS
+  ts() {
+    const d = new Date();
+    const pad = (n, w = 2) => String(n).padStart(w, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ` +
+           `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.` +
+           `${pad(d.getMilliseconds(), 3)}`;
   }
 
-  /**
-   * 错误日志（始终显示）
-   */
-  error(...args) {
-    console.error('[ERROR]', ...args);
+  fmt(level, msg) {
+    return `[${this.ts()}] [${level}] ${msg}`;
   }
 
-  /**
-   * 警告日志（始终显示）
-   */
-  warn(...args) {
-    console.warn('[WARN]', ...args);
+  log(msg) {
+    if (!this.debug) return;
+    console.log(this.fmt('DEBUG', msg));
   }
 
-  /**
-   * 信息日志（始终显示）
-   */
-  info(...args) {
-    console.log('[INFO]', ...args);
+  info(msg) {
+    console.log(this.fmt('INFO', msg));
+  }
+
+  warn(msg) {
+    console.warn(this.fmt('WARN', msg));
+  }
+
+  error(msg, err) {
+    if (err) console.error(this.fmt('ERROR', msg), err);
+    else console.error(this.fmt('ERROR', msg));
   }
 }
-

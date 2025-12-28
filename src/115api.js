@@ -109,7 +109,13 @@ export class Pan115API {
     // 下载链接合并：同一个 key 并发请求只发一次
     // 结构：key -> Promise<{url,userAgent}>
     this._downloadUrlInflight = new Map();
-
+    this.downloadConcurrency = options.downloadConcurrency ?? 1;
+    this.downloadMinIntervalMs = options.downloadMinIntervalMs ?? 1000;
+    
+    this._downloadLimiter = new SimpleLimiter({
+      concurrency: this.downloadConcurrency,
+      minIntervalMs: this.downloadMinIntervalMs
+    });
     // =========================
     // 4) Token 刷新 singleflight（避免并发刷新）
     // =========================
@@ -570,7 +576,7 @@ export class Pan115API {
       const resp = await this.openClient.request(config);
   
       // 业务层错误（115 这种常用 response.data.state）
-      if (resp?.data?.state === false && resp.data.code === 40140125) {
+      if (resp?.data?.state === false && (resp.data.code === 40140125 || resp.data.code === 40140126)) {
         this.logger.warn('[API] access_token 无效，准备刷新并重试一次');
   
         await this.refreshAccessToken();          // ✅ singleflight 刷新
@@ -630,7 +636,7 @@ export class Pan115API {
         return inflight;
       }
 
-      const p = (async () => {
+      const p = this._downloadLimiter.run(async () => {
         // 使用115开放API获取下载链接
         const formData = new FormData();
         formData.append('pick_code', pickcode);
@@ -709,7 +715,7 @@ export class Pan115API {
           value: result
         });
         return result;
-      })();
+      });
       this._downloadUrlInflight.set(cacheKey, p);
       try {
         return await p;
