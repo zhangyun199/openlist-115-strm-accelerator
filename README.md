@@ -33,7 +33,7 @@
 docker run -d \
   --name openlist-115-strm-accelerator \
   -p 3000:3000 \
-  -v $(pwd)/config.json:/app/config.json:ro \
+  -v $(pwd)/config.json:/app/config.json \
   ghcr.io/zhangyun199/openlist-115-strm-accelerator:latest
 ```
 

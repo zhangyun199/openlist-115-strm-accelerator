@@ -11,10 +11,36 @@ export class WebDAVServer {
 
     this.blockGoHttpClient = options.blockGoHttpClient ?? false;
 
+    this._refreshTimers = new Map(); // parentPath -> timeoutId
+
     this.logger = new Logger(!!options.debug);
     this.app = express();
 
     this.setupRoutes();
+  }
+
+  debounceRefreshDir(parentPath, delayMs = 300) {
+    const p = parentPath === '/' ? '/' : parentPath.replace(/\/+$/g, '');
+    const old = this._refreshTimers.get(p);
+    if (old) clearTimeout(old);
+  
+    const t = setTimeout(async () => {
+      this._refreshTimers.delete(p);
+      try {
+        // 失效父目录缓存
+        this.panAPI.invalidateByPath?.(p);
+  
+        // 可选：预热（让下一次 PROPFIND 立刻拿到新列表）
+        if (this.panAPI.refreshDirectoryByPath) {
+          await this.panAPI.refreshDirectoryByPath(p);
+        }
+        this.logger.log(`[WebDAV] 已刷新父目录缓存: ${p}`);
+      } catch (e) {
+        this.logger.error(`[WebDAV] 刷新父目录失败: ${p}`, e);
+      }
+    }, delayMs);
+  
+    this._refreshTimers.set(p, t);
   }
 
   setupRoutes() {
@@ -69,6 +95,20 @@ export class WebDAVServer {
       }
     });
 
+    // MKCOL - 仅用于触发刷新，不实际创建
+    this.app.use('/*', async (req, res, next) => {
+      if (req.method !== 'MKCOL') return next();
+    
+      const fullPath = this.getRequestPath(req);
+      const parentPath = fullPath.split('/').slice(0, -1).join('/') || '/';
+    
+      this.logger.log(`[WebDAV] MKCOL(fake) - path=${fullPath} -> 刷新 parent=${parentPath}`);
+    
+      this.debounceRefreshDir(parentPath, 300);
+    
+      return res.status(201).end();
+    });
+    
     // GET - 下载文件
     this.app.get('/*', async (req, res) => {
       try {
